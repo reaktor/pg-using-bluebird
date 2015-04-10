@@ -1,0 +1,25 @@
+{
+  "name": "pg-using-promises",
+  "version": "1.0.0",
+  "description": "Helpers for managing PostgreSQL connections",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "test": "./node_modules/.bin/grunt"
+  },
+  "dependencies": {
+    "bluebird": "^2.9.14",
+    "lodash": "^3.5.0",
+    "pg": "^4.3.0",
+    "string-template": "^0.2.0"
+  },
+  "devDependencies": {
+    "chai": "^2.1.2",
+    "chai-as-promised": "^4.3.0",
+    "grunt": "^0.4.5",
+    "grunt-cli": "^0.1.13",
+    "grunt-contrib-jshint": "^0.11.0",
+    "grunt-mocha-test": "^0.12.7",
+    "mocha": "^2.2.1"
+  }
+}

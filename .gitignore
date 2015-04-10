@@ -1,0 +1,5 @@
+.idea
+node_modules
+test-report-cleaned.xml
+test-report.xml
+.npm_install_done

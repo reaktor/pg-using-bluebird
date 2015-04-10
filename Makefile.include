@@ -1,0 +1,24 @@
+# -*- Makefile -*-
+
+PGRM_DIR ?= $(abspath pg-resource-management)
+
+RUN_NPM_INSTALL=npm config set registry http://registry.npmjs.org/ && npm install
+CLEAN_TARGETS += pgrm-clean
+unit-tests += pgrm-unit-tests
+
+PGRM_NPM_INSTALLED=$(PGRM_DIR)/.npm_install_done
+
+pgrm-clean:
+	$(PRINT_TARGET)
+	rm -f test-report.xml
+
+pgrm-unit-tests: $(PGRM_NPM_INSTALLED)
+	$(PRINT_TARGET)
+	@dropdb --if-exists pgrm-tests
+	@createdb --template=template0 --locale fi_FI.UTF-8 pgrm-tests
+	node_modules/.bin/grunt ci
+
+$(PGRM_NPM_INSTALLED): $(PGRM_DIR)/package.json
+	$(PRINT_TARGET)
+	@cd $(PGRM_DIR) && $(RUN_NPM_INSTALL)
+	@touch $@
