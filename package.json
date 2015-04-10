@@ -1,5 +1,5 @@
 {
-  "name": "pg-using-promises",
+  "name": "pg-using-bluebird",
   "version": "1.0.0",
   "description": "Helpers for managing PostgreSQL connections",
   "private": true,
