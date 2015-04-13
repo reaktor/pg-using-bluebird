@@ -7,6 +7,10 @@
   "scripts": {
     "test": "./node_modules/.bin/grunt"
   },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/reaktor/pg-using-bluebird.git"
+  },
   "dependencies": {
     "bluebird": "^2.9.14",
     "lodash": "^3.5.0",
