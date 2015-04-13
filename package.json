@@ -25,5 +25,6 @@
     "grunt-contrib-jshint": "^0.11.0",
     "grunt-mocha-test": "^0.12.7",
     "mocha": "^2.2.1"
-  }
+  },
+  "license": "MIT"
 }
