@@ -25,5 +25,13 @@
     "grunt-mocha-test": "^0.12.7",
     "mocha": "^2.2.1"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "contributors": [
+    [
+      "Jouni Hartikainen (http://github.com/chacal)",
+      "Rami Karjalainen (http://github.com/ramik)",
+      "Oskar Ojala (http://github.com/pnex2000)",
+      "Heikki Rauhala (http://github.com/hvrauhal)"
+    ]
+  ]
 }
