@@ -2,7 +2,6 @@
   "name": "pg-using-bluebird",
   "version": "1.0.1",
   "description": "Helpers for managing PostgreSQL connections",
-  "private": true,
   "main": "index.js",
   "scripts": {
     "test": "./node_modules/.bin/grunt"
