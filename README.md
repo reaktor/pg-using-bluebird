@@ -14,5 +14,3 @@ with ```text``` for the query and ```values``` for the arguments.
 
 ```createUpsertCTE(table, idField, args)``` creates an upsert query, returns an object 
 with ```text``` for the query and ```values``` for the arguments.
-
-```queryUpsertCTE(connection, table, idField, args)``` creates an upsert and executes it in the DB.
