@@ -1,4 +1,4 @@
-# pg-resource-management
+# pg-using-bluebird
 
 Utility library for handling PostgreSQL operations using Bluebird promises. Takes the URL to the DB as a 
 parameter object (```{dbUrl: "myUrl"}``` and exports the following functions:
