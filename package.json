@@ -1,6 +1,6 @@
 {
   "name": "pg-using-bluebird",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Helpers for managing PostgreSQL connections",
   "main": "index.js",
   "scripts": {
