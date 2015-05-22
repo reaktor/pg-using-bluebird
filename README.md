@@ -28,6 +28,8 @@ using(db.getConnection(), function (connection) {
 })
 ```
 
+See [connection-test.js](test/connection-test.js) for more complete examples.
+
 # Documentation
 
 Requiring this module returns a function takes a single parameter
