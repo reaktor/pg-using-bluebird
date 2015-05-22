@@ -1,7 +1,38 @@
 # pg-using-bluebird
 
-Utility library for handling PostgreSQL operations using Bluebird promises. Takes the URL to the DB as a 
-parameter object (```{dbUrl: "myUrl"}``` and exports the following functions:
+Utility library for promisifying
+[node-postgres](https://github.com/brianc/node-postgres) using
+[Bluebird](https://github.com/petkaantonov/bluebird/) promises with
+Bluebird's resource management model.
+
+This is based on the postgres example in Bluebird's documentation.
+
+# Install
+
+    npm install pg-using-bluebird
+
+# Usage
+
+```javascript
+var Promise = require('bluebird'),
+  pgUsingBluebird = require('pg-using-bluebird'),
+  db = pgUsingBluebird({dbUrl: "postgres://localhost/pgrm-tests"}),
+  using = Promise.using
+
+using(db.getConnection(), function (connection) {
+  return connection.queryAsync("select 1").then(function (res) {
+    console.log(res.rows)
+  })
+}).finally(function() {
+  db.end()
+})
+```
+
+# Documentation
+
+Requiring this module returns a function takes a single parameter
+object with at least the URL to the DB (```{dbUrl: "myUrl"}```) and
+returns an object with the following functions:
 
 ```getConnection()``` returns a DB connection
 
