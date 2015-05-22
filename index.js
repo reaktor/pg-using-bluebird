@@ -156,7 +156,8 @@ module.exports = function (env) {
     queryAsync: queryWithEnv,
     createMultipleInsertCTE: createMultipleInsertCTE,
     createUpsertCTE: createUpsertCTE,
-    on: on
+    on: on,
+    end: end
   }
 
   function getConnectionWithEnv() { return getConnection(envWithDefaults) }
@@ -167,5 +168,9 @@ module.exports = function (env) {
 
   function on(event, fn) {
     pg.on(event, fn)
+  }
+  
+  function end() {
+    pg.end() 
   }
 }
