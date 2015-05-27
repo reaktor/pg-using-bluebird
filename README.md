@@ -3,9 +3,9 @@
 Utility library for promisifying
 [node-postgres](https://github.com/brianc/node-postgres) using
 [Bluebird](https://github.com/petkaantonov/bluebird/) promises with
-Bluebird's resource management model.
+Bluebird's resource management functionality.
 
-This is based on the postgres example in Bluebird's documentation.
+This project is based on the postgres example in [Bluebird's documentation](https://github.com/petkaantonov/bluebird/blob/master/API.md#resource-management).
 
 # Install
 
