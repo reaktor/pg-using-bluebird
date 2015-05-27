@@ -47,3 +47,8 @@ with ```text``` for the query and ```values``` for the arguments.
 
 ```createUpsertCTE(table, idField, args)``` creates an upsert query, returns an object 
 with ```text``` for the query and ```values``` for the arguments.
+
+# Alternatives
+
+* [pg-promise](https://www.npmjs.com/package/pg-promise), a more generic Promises/A+ promisification of node-postgres with more features and more code. Does not leverage `using()` for resource management.
+* [dbh-pg](https://www.npmjs.com/package/dbh-pg), a node-postgres and bluebird specific library with it's own api for querying. Does not leverage `using()` for resource management.
