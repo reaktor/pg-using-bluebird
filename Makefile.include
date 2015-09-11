@@ -15,7 +15,7 @@ pgrm-clean:
 pgrm-unit-tests: $(PGRM_NPM_INSTALLED)
 	$(PRINT_TARGET)
 	@dropdb --if-exists pgrm-tests
-	@createdb --template=template0 --locale fi_FI.UTF-8 pgrm-tests
+	@createdb --template=template0 --locale fi_FI.UTF-8 --encoding=UTF-8 pgrm-tests
 	node_modules/.bin/grunt ci
 
 $(PGRM_NPM_INSTALLED): $(PGRM_DIR)/package.json
