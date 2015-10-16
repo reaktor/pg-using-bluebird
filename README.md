@@ -40,7 +40,7 @@ returns an object with the following functions:
 
 ```getTransaction([tablesToLock])``` returns a DB transaction, 1st argument is an optional list of tables to lock
 
-```queryAsync(query, [args])``` performs a query with the optional argument list inserted into the query. Returns the resulting rows.
+```queryRowsAsync(query, [args])``` performs a query with the optional argument list inserted into the query. Returns the resulting rows.
 
 ```createMultipleInsertCTE(insert)``` creates a common table expression (CTE) for multiple inserts, returns an object 
 with ```text``` for the query and ```values``` for the arguments.

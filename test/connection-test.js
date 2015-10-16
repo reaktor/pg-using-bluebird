@@ -24,12 +24,15 @@ describe('connection-test.js', function () {
   })
   describe('configuration', function () {
     it('disables parsing of SQL dates to javascript dates', function () {
-      return assert.eventually.deepEqual(pgrmWithDefaults.queryAsync("select date('2015-03-30') as the_date"), [{the_date: '2015-03-30'}])
+      return assert.eventually.deepEqual(pgrmWithDefaults.queryRowsAsync("select date('2015-03-30') as the_date"), [{the_date: '2015-03-30'}])
     })
   })
-  describe('shortcut queryAsync', function () {
+  describe('shortcut queryRowsAsync', function () {
     it('returns the rows of the result', function () {
-      return insert1IntoFoo(pgrmWithDefaults).then(assertOneEventuallyInFoo)
+      return pgrmWithDefaults.queryRowsAsync("insert into foo(bar) values ($1)", [1]).then(assertOneEventuallyInFoo)
+    })
+    it('is has an alias queryAsync until the next breaking change release', function() {
+      return pgrmWithDefaults.queryAsync("insert into foo(bar) values ($1)", [1]).then(assertOneEventuallyInFoo)
     })
   })
   describe('connections', function () {
@@ -120,7 +123,7 @@ describe('connection-test.js', function () {
             })
           })
         }).then(function () {
-          return assert.eventually.deepEqual(pgrmWithDefaults.queryAsync("select bar from foo order by bar"), [{bar: 1}, {bar: 2}])
+          return assert.eventually.deepEqual(pgrmWithDefaults.queryRowsAsync("select bar from foo order by bar"), [{bar: 1}, {bar: 2}])
         })
       })
 
@@ -147,11 +150,11 @@ describe('connection-test.js', function () {
   }
 
   function assertOneEventuallyInFoo() {
-    return assert.eventually.deepEqual(pgrmWithDefaults.queryAsync("select bar from foo"), [{bar: 1}])
+    return assert.eventually.deepEqual(pgrmWithDefaults.queryRowsAsync("select bar from foo"), [{bar: 1}])
   }
 
   function assertFooIsEventuallyEmpty() {
-    return assert.eventually.deepEqual(pgrmWithDefaults.queryAsync("select bar from foo"), [])
+    return assert.eventually.deepEqual(pgrmWithDefaults.queryRowsAsync("select bar from foo"), [])
   }
 
   function assertErrCodeIsQueryCanceled(err) {

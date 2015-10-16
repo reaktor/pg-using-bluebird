@@ -53,7 +53,7 @@ function getTransaction(env, tablesToLock) {
   })
 }
 
-function queryAsync(env, query, args) {
+function queryRowsAsync(env, query, args) {
   var argsArray = args || []
   return using(getConnection(env), function (connection) {
     return connection.queryAsync(query, argsArray)
@@ -153,7 +153,8 @@ module.exports = function (env) {
   return {
     getConnection: getConnectionWithEnv,
     getTransaction: getTransactionWithEnv,
-    queryAsync: queryWithEnv,
+    queryAsync: queryRowsWithEnv,
+    queryRowsAsync: queryRowsWithEnv,
     createMultipleInsertCTE: createMultipleInsertCTE,
     createUpsertCTE: createUpsertCTE,
     on: on,
@@ -164,7 +165,7 @@ module.exports = function (env) {
 
   function getTransactionWithEnv(tablesToLock) { return getTransaction(envWithDefaults, tablesToLock) }
 
-  function queryWithEnv(query, args) { return queryAsync(envWithDefaults, query, args)}
+  function queryRowsWithEnv(query, args) { return queryRowsAsync(envWithDefaults, query, args)}
 
   function on(event, fn) {
     pg.on(event, fn)
