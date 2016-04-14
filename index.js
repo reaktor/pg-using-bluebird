@@ -9,7 +9,8 @@ var pg = require('pg'),
 
 var DEFAULTS = {
   statementTimeout: '0', // the node-postgres default is no timeout
-  poolSize : 20
+  poolSize : 20,
+  ssl: false
 }
 
 // Do not try to parse a postgres DATE to a javascript Date.
@@ -149,6 +150,7 @@ function createMultipleInsertCTE(insert) {
 module.exports = function (env) {
   var envWithDefaults = _.assign({}, DEFAULTS, env)
   pg.defaults.poolSize = envWithDefaults.poolSize
+  pg.defaults.ssl = envWithDefaults.ssl
 
   return {
     getConnection: getConnectionWithEnv,
