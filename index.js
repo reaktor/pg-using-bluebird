@@ -17,10 +17,11 @@ var DEFAULTS = {
 pg.types.setTypeParser(1082, 'text', _.identity)
 
 BPromise.promisifyAll(pg)
+var connectAsyncWithMultiArgs = BPromise.promisify(pg.connect, { context: pg, multiArgs: true })
 
 function getConnection(env) {
   var close
-  return pg.connectAsync(env.dbUrl).spread(function(client, done) {
+  return connectAsyncWithMultiArgs(env.dbUrl).spread(function (client, done){
     close = done
     return client.queryAsync("SET statement_timeout TO '" + env.statementTimeout + "'")
       .then(function () { return client })
@@ -34,7 +35,7 @@ function getConnection(env) {
 function getTransaction(env, tablesToLock) {
   tablesToLock = tablesToLock || []
   var close
-  return pg.connectAsync(env.dbUrl).spread(function(client, done) {
+  return connectAsyncWithMultiArgs(env.dbUrl).spread(function(client, done) {
     close = done
     return client.queryAsync("SET statement_timeout TO '" + env.statementTimeout + "'")
       .then(function () { return client.queryAsync(constructLockingBeginStatement(tablesToLock))})
