@@ -1,12 +1,18 @@
 # -*- Makefile -*-
 
 PGRM_DIR ?= $(abspath pg-resource-management)
+PGRM_NVM_DIR=$(HOME)/.nvm
+PGRM_NVM=source $(PGRM_NVM_DIR)/nvm.sh; nvm
+PGRM_NPM=$(PGRM_NVM) exec --silent npm
+PGRM_GRUNT=$(PGRM_NVM) exec --silent $(PGRM_DIR)/node_modules/.bin/grunt
 
-RUN_NPM_INSTALL=npm config set registry http://registry.npmjs.org/ && npm install
+SHELL:=/bin/bash
+
+RUN_NPM_INSTALL=$(PGRM_NPM) config set registry http://registry.npmjs.org/ && $(PGRM_NPM) install
 CLEAN_TARGETS += pgrm-clean
-unit-tests += pgrm-unit-tests
+UNIT_TEST_TARGETS += pgrm-unit-tests
 
-PGRM_NPM_INSTALLED=$(PGRM_DIR)/.npm_install_done
+PGRM_NPM_INSTALLED=$(PGRM_DIR)/node_modules/.npm_install_done
 
 pgrm-clean:
 	$(PRINT_TARGET)
@@ -16,9 +22,15 @@ pgrm-unit-tests: $(PGRM_NPM_INSTALLED)
 	$(PRINT_TARGET)
 	@dropdb --if-exists pgrm-tests
 	@createdb --template=template0 --locale fi_FI.UTF-8 --encoding=UTF-8 pgrm-tests
-	node_modules/.bin/grunt ci
+	$(PGRM_GRUNT) --force ci
 
-$(PGRM_NPM_INSTALLED): $(PGRM_DIR)/package.json
+$(PGRM_NPM_INSTALLED): $(PGRM_DIR)/package.json $(PGRM_NVM_DIR)/nvm.sh
 	$(PRINT_TARGET)
 	@cd $(PGRM_DIR) && $(RUN_NPM_INSTALL)
 	@touch $@
+
+$(PGRM_NVM_DIR)/nvm.sh:
+	@echo
+	@echo Please install nvm, e.g. by executing:
+	@echo 'curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.30.1/install.sh | bash'
+	@false
