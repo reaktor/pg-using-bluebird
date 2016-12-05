@@ -1,4 +1,4 @@
-"use strict";
+"use strict";                   // eslint-disable-line semi
 
 var pgrm = require('../index.js')
 var configs = {dbUrl: "postgres://localhost/pgrm-tests"}
@@ -112,9 +112,9 @@ describe('connection-test.js', function () {
               return innerTx.queryAsync('insert into foo(bar) values(2)')
             }).then(function () {
               return assert.eventually.deepEqual(BPromise.all([
-                  outerTx.queryAsync("select * from foo").then(function (res) {return res.rows}),
-                  innerTx.queryAsync("select * from foo").then(function (res) {return res.rows}),
-                  pgrmWithDefaults.queryAsync("select * from foo")]),
+                outerTx.queryAsync("select * from foo").then(function (res) {return res.rows}),
+                innerTx.queryAsync("select * from foo").then(function (res) {return res.rows}),
+                pgrmWithDefaults.queryAsync("select * from foo")]),
                 [
                   [{bar: 1, id: 1}],
                   [{bar: 2, id: 2}],
@@ -129,7 +129,7 @@ describe('connection-test.js', function () {
 
       it('and lock the given table', function () {
         var selectingTxFn
-        var selectingTxP = new BPromise(function (resolve, reject) { selectingTxFn = resolve })
+        var selectingTxP = new BPromise(function (resolve) { selectingTxFn = resolve })
 
         var earlierTxP = using(pgrmWithDefaults.getTransaction(['foo']), function (earlierTx) {
           using(pgrmWithDefaults.getTransaction(['foo']), function (laterTx) {

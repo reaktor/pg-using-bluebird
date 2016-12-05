@@ -1,4 +1,4 @@
-"use strict";
+"use strict";                   // eslint-disable-line semi
 
 var pg = require('pg'),
   _ = require('lodash'),
@@ -21,19 +21,19 @@ var connectAsyncWithMultiArgs = BPromise.promisify(pg.connect, { context: pg, mu
 
 function getConnection(env) {
   var close
-  return connectAsyncWithMultiArgs(env.dbUrl).spread(function (client, done){
+  return connectAsyncWithMultiArgs(env.dbUrl).spread(function (client, done) {
     close = done
     return client.queryAsync("SET statement_timeout TO '" + env.statementTimeout + "'")
       .then(function () { return client })
   }).disposer(function() {
     try {
       if (close) close()
-    } catch(e) {}
+    } catch(e) {}               // eslint-disable-line no-empty
   })
 }
 
-function getTransaction(env, tablesToLock) {
-  tablesToLock = tablesToLock || []
+function getTransaction(env, tablesToLock_) {
+  var tablesToLock = tablesToLock_ || []
   var close
   return connectAsyncWithMultiArgs(env.dbUrl).spread(function(client, done) {
     close = done
@@ -49,7 +49,7 @@ function getTransaction(env, tablesToLock) {
     function doClose() {
       try {
         if (close) close()
-      } catch (e) {
+      } catch (e) {             // eslint-disable-line no-empty
       }
     }
   })
@@ -98,7 +98,7 @@ function createUpsertCTE(table, idField, args) {
       return '(select * from {table}_update) union all (select * from {table}_insert)'
     }
     function insertQuery() {
-      return '{insert} where not exists (select * from {table}_update) returning {uuid}';
+      return '{insert} where not exists (select * from {table}_update) returning {uuid}'
     }
     function updateQuery() {
       return '{update} returning {uuid}'
@@ -141,7 +141,7 @@ function createMultipleInsertCTE(insert) {
       var split = sqlString.split(/\$\d+/)
       var omit = 0
       return _.map(split, function (fragment) {
-        var isLastItemInFragment = ++omit % split.length === 0;
+        var isLastItemInFragment = ++omit % split.length === 0
         return isLastItemInFragment ? fragment : fragment + '$' + i++
       }).join('')
     })
@@ -173,8 +173,8 @@ module.exports = function (env) {
   function on(event, fn) {
     pg.on(event, fn)
   }
-  
+
   function end() {
-    pg.end() 
+    pg.end()
   }
 }

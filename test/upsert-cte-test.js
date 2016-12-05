@@ -1,4 +1,4 @@
-"use strict";
+"use strict";                   // eslint-disable-line semi
 
 var pgrm = require('../index.js')(),
   chai = require('chai'),
@@ -154,10 +154,10 @@ describe('upsert-cte-test.js', function () {
 
     describe('Validates parameters', function() {
       it('and does not allow incorrect order', function() {
-       var insert = {text: 'insert into foo(a,b,c) values ($2,$1,$3)', values: ['a','b','c']}
-       assert.throws(function () {
-         pgrm.createMultipleInsertCTE(insert)
-       })
+        var insert = {text: 'insert into foo(a,b,c) values ($2,$1,$3)', values: ['a','b','c']}
+        assert.throws(function () {
+          pgrm.createMultipleInsertCTE(insert)
+        })
       })
       it('and does not allow non matching count of values and parameters', function () {
         var insert = {text: 'insert into foo(a,b,c) values ($1,$2,$3)', values: ['a','b','c','d']}
