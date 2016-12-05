@@ -9,11 +9,11 @@ module.exports = function (grunt) {
         src: ['test/**/*.js']
       },
       test_with_xunit: {
-        options: {
+        options: process.env.BUILD_NUMBER ? {
           reporter: 'xunit',
           quiet: true,
           captureFile: 'test-report.xml'
-        },
+        } : {},
         src: ['test/**/*.js']
       }
     },
