@@ -16,7 +16,7 @@
   "dependencies": {
     "bluebird": "^3.4.6",
     "lodash": "^4.17.2",
-    "pg": "^6.1.0",
+    "pg": "^6.4.2",
     "string-template": "^1.0.0"
   },
   "devDependencies": {
