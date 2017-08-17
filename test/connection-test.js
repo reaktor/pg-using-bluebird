@@ -1,4 +1,4 @@
-"use strict";                   // eslint-disable-line semi
+"use strict"; // eslint-disable-line semi
 
 var pgrm = require('../index.js')
 var configs = {dbUrl: "postgres://localhost/pgrm-tests"}
@@ -115,11 +115,11 @@ describe('connection-test.js', function () {
                 outerTx.queryAsync("select * from foo").then(function (res) {return res.rows}),
                 innerTx.queryAsync("select * from foo").then(function (res) {return res.rows}),
                 pgrmWithDefaults.queryAsync("select * from foo")]),
-                [
-                  [{bar: 1, id: 1}],
-                  [{bar: 2, id: 2}],
-                  []
-                ])
+              [
+                [{bar: 1, id: 1}],
+                [{bar: 2, id: 2}],
+                []
+              ])
             })
           })
         }).then(function () {

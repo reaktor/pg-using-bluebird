@@ -1,4 +1,4 @@
-"use strict";                   // eslint-disable-line semi
+"use strict"; // eslint-disable-line semi
 
 var pgrm = require('../index.js')(),
   chai = require('chai'),

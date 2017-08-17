@@ -1,4 +1,4 @@
-"use strict";                   // eslint-disable-line semi
+"use strict"; // eslint-disable-line semi
 
 var pg = require('pg'),
   _ = require('lodash'),
@@ -28,7 +28,7 @@ function getConnection(env) {
   }).disposer(function() {
     try {
       if (close) close()
-    } catch(e) {}               // eslint-disable-line no-empty
+    } catch(e) {} // eslint-disable-line no-empty
   })
 }
 
@@ -49,7 +49,7 @@ function getTransaction(env, tablesToLock_) {
     function doClose() {
       try {
         if (close) close()
-      } catch (e) {             // eslint-disable-line no-empty
+      } catch (e) { // eslint-disable-line no-empty
       }
     }
   })
