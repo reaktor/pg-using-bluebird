@@ -57,19 +57,27 @@ function getTransaction(env, tablesToLock_) {
 
 function withQueryRowsAsync(client) {
   return Object.assign(client, {
-    queryRowsAsync: (query, args) => client.queryAsync(query, args).then(getRows)
+    queryRowsAsync: (query, args) => queryAsync(client, query, args).then(getRows)
   })
 }
 
 function queryRowsAsync(env, query, args) {
   var argsArray = args || []
   return using(getConnection(env), function (connection) {
-    return connection.queryAsync(query, argsArray)
+    return queryAsync(connection, query, argsArray)
   }).then(getRows)
 }
 
 function getRows(res) {
   return res.rows
+}
+
+function queryAsync(client, query, args) {
+  if (_.isObject(query) && query.values && Array.isArray(args) && args.length > 0) {
+    throw new Error('Both query.values and args were passed to query. Please use only one of them.')
+  }
+
+  return client.queryAsync(query.text || query, query.values || args)
 }
 
 function constructLockingBeginStatement(involvedTables) {
