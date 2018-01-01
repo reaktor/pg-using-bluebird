@@ -24,7 +24,7 @@ function getConnection(env) {
   return connectAsyncWithMultiArgs(env.dbUrl).spread(function (client, done) {
     close = done
     return client.queryAsync("SET statement_timeout TO '" + env.statementTimeout + "'")
-      .then(function () { return client })
+      .then(function () { return withQueryRowsAsync(client) })
   }).disposer(function() {
     try {
       if (close) close()
@@ -39,7 +39,7 @@ function getTransaction(env, tablesToLock_) {
     close = done
     return client.queryAsync("SET statement_timeout TO '" + env.statementTimeout + "'")
       .then(function () { return client.queryAsync(constructLockingBeginStatement(tablesToLock))})
-      .then(function () { return client })
+      .then(function () { return withQueryRowsAsync(client) })
   }).disposer(function(tx, promise) {
     if (promise.isFulfilled()) {
       return tx.queryAsync('COMMIT').then(doClose)
@@ -55,13 +55,21 @@ function getTransaction(env, tablesToLock_) {
   })
 }
 
+function withQueryRowsAsync(client) {
+  return Object.assign(client, {
+    queryRowsAsync: (query, args) => client.queryAsync(query, args).then(getRows)
+  })
+}
+
 function queryRowsAsync(env, query, args) {
   var argsArray = args || []
   return using(getConnection(env), function (connection) {
     return connection.queryAsync(query, argsArray)
-  }).then(function (res) {
-    return res.rows
-  })
+  }).then(getRows)
+}
+
+function getRows(res) {
+  return res.rows
 }
 
 function constructLockingBeginStatement(involvedTables) {
