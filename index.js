@@ -10,7 +10,9 @@ var pg = require('pg'),
 var DEFAULTS = {
   statementTimeout: '0', // the node-postgres default is no timeout
   poolSize : 20,
-  ssl: false
+  ssl: false,
+  queryValuesKey: 'values',
+  queryTextKey: 'text'
 }
 
 // Do not try to parse a postgres DATE to a javascript Date.
@@ -24,7 +26,7 @@ function getConnection(env) {
   return connectAsyncWithMultiArgs(env.dbUrl).spread(function (client, done) {
     close = done
     return client.queryAsync("SET statement_timeout TO '" + env.statementTimeout + "'")
-      .then(function () { return withQueryRowsAsync(client) })
+      .then(function () { return withQueryRowsAsync(env, client) })
   }).disposer(function() {
     try {
       if (close) close()
@@ -39,7 +41,7 @@ function getTransaction(env, tablesToLock_) {
     close = done
     return client.queryAsync("SET statement_timeout TO '" + env.statementTimeout + "'")
       .then(function () { return client.queryAsync(constructLockingBeginStatement(tablesToLock))})
-      .then(function () { return withQueryRowsAsync(client) })
+      .then(function () { return withQueryRowsAsync(env, client) })
   }).disposer(function(tx, promise) {
     if (promise.isFulfilled()) {
       return tx.queryAsync('COMMIT').then(doClose)
@@ -55,16 +57,16 @@ function getTransaction(env, tablesToLock_) {
   })
 }
 
-function withQueryRowsAsync(client) {
+function withQueryRowsAsync(env, client) {
   return Object.assign(client, {
-    queryRowsAsync: (query, args) => queryAsync(client, query, args).then(getRows)
+    queryRowsAsync: (query, args) => queryAsync(env, client, query, args).then(getRows)
   })
 }
 
 function queryRowsAsync(env, query, args) {
   var argsArray = args || []
   return using(getConnection(env), function (connection) {
-    return queryAsync(connection, query, argsArray)
+    return queryAsync(env, connection, query, argsArray)
   }).then(getRows)
 }
 
@@ -72,12 +74,12 @@ function getRows(res) {
   return res.rows
 }
 
-function queryAsync(client, query, args) {
-  if (_.isObject(query) && query.values && Array.isArray(args) && args.length > 0) {
+function queryAsync(env, client, query, args) {
+  if (_.isObject(query) && query[env.queryValuesKey] && Array.isArray(args) && args.length > 0) {
     throw new Error('Both query.values and args were passed to query. Please use only one of them.')
   }
 
-  return client.queryAsync(query.text || query, query.values || args)
+  return client.queryAsync(query[env.queryTextKey] || query, query[env.queryValuesKey] || args)
 }
 
 function constructLockingBeginStatement(involvedTables) {

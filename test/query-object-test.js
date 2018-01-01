@@ -3,6 +3,7 @@
 var pgrm = require('../index.js')
 var configs = {dbUrl: "postgres://localhost/pgrm-tests"}
 var pgrmWithDefaults = pgrm(configs)
+var pgrmWithCustomKeys = pgrm(Object.assign(configs, {queryTextKey: 'customQueryTextKey', queryValuesKey: 'customQueryValuesKey'}))
 var using = require('bluebird').using
 var chai = require('chai')
 var chaiAsPromised = require('chai-as-promised')
@@ -30,6 +31,13 @@ describe('queryAsync with a query object', function () {
         assert.equal(err, 'Error: Both query.values and args were passed to query. Please use only one of them.')
         return assertFooIsEventuallyEmpty()
       })
+  })
+
+  it('works with custom query text and values keys', function () {
+    return pgrmWithCustomKeys.queryRowsAsync({
+      customQueryTextKey: "insert into foo(bar) values ($1)",
+      customQueryValuesKey: [1]
+    }).then(assertOneEventuallyInFoo)
   })
 })
 
