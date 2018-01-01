@@ -176,6 +176,12 @@ describe('connection-test.js', function () {
             assert.deepEqual(res.rows, [{bar: 1}])
           })
         }
+      }).then(function assertRowsObject(conn) {
+        return function () {
+          return conn.queryRowsAsync('SELECT bar from foo').then(function (rows) {
+            assert.deepEqual(rows, [{bar: 1}])
+          })
+        }
       })
     }
   }
