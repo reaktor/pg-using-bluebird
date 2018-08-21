@@ -8,9 +8,12 @@ var pg = require('pg'),
   assert = require('assert')
 
 var POOL_DEFAULTS = {
+  max: 20, // pool size
+  ssl: false
+}
+
+var QUERY_DEFAULTS = {
   statementTimeout: '0', // the node-postgres default is no timeout
-  poolSize : 20,
-  ssl: false,
   queryValuesKey: 'values',
   queryTextKey: 'text'
 }
@@ -175,16 +178,17 @@ function createMultipleInsertCTE(insert) {
 }
 
 module.exports = function (env) {
-  var envWithDefaults = _.assign({}, POOL_DEFAULTS, env)
-  pg.defaults.poolSize = envWithDefaults.poolSize
-  pg.defaults.ssl = envWithDefaults.ssl
+  var poolConfig = _.assign({}, POOL_DEFAULTS, env)
 
-  // TODO split pool conf and execution env
+  // backwards compatibility
+  poolConfig.connectionString = env.dbUrl
+  poolConfig.max = env.poolSize
 
-  envWithDefaults.connectionString = env.dbUrl
-  pool = new pg.Pool(envWithDefaults)
+  pool = new pg.Pool(poolConfig)
 
   connectMultiArgAsync = BPromise.promisify(pool.connect, { context: pool, multiArgs: true})
+
+  var queryConfig = _.assign({}, QUERY_DEFAULTS, env)
 
   return {
     getConnection: getConnectionWithEnv,
@@ -197,11 +201,11 @@ module.exports = function (env) {
     end: end
   }
 
-  function getConnectionWithEnv() { return getConnection(envWithDefaults) }
+  function getConnectionWithEnv() { return getConnection(queryConfig) }
 
-  function getTransactionWithEnv(tablesToLock) { return getTransaction(envWithDefaults, tablesToLock) }
+  function getTransactionWithEnv(tablesToLock) { return getTransaction(queryConfig, tablesToLock) }
 
-  function queryRowsWithEnv(query, args) { return queryRowsAsync(envWithDefaults, query, args)}
+  function queryRowsWithEnv(query, args) { return queryRowsAsync(queryConfig, query, args)}
 
   function on(event, fn) {
     pg.on(event, fn)
