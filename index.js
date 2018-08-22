@@ -207,6 +207,6 @@ module.exports = function (env) {
   }
 
   function end() {
-    pool.end()
+    return pool.end()
   }
 }
