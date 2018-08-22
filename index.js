@@ -22,35 +22,31 @@ var QUERY_DEFAULTS = {
 pg.types.setTypeParser(1082, 'text', _.identity)
 
 BPromise.promisifyAll(pg)
-var pool
-var connectMultiArgAsync
 
-// TODO pool.error, have the client do it, document
-
-function getConnection(env) {
+function getConnection(env, connector) {
   var releaseConnection
 
-  return connectMultiArgAsync()
+  return connector()
     .spread(function (client, done) {
       releaseConnection = done
       return client.queryAsync("SET statement_timeout TO '" + env.statementTimeout + "'")
-        .then(function () { return withQueryRowsAsync(env, client) })
+        .then(function () { return decorateWithQueryRowsAsync(env, client) })
     })
     .disposer(function () {
       releaseConnectionToPool(releaseConnection)
     })
 }
 
-function getTransaction(env, tablesToLock_) {
+function getTransaction(env, connector, tablesToLock_) {
   var tablesToLock = tablesToLock_ || []
   var releaseConnection
 
-  return connectMultiArgAsync()
+  return connector()
     .spread(function (client, done) {
       releaseConnection = done
       return client.queryAsync("SET statement_timeout TO '" + env.statementTimeout + "'")
         .then(function () { return client.queryAsync(constructLockingBeginStatement(tablesToLock)) })
-        .then(function () { return withQueryRowsAsync(env, client) })
+        .then(function () { return decorateWithQueryRowsAsync(env, client) })
     })
     .disposer(function (tx, promise) {
       if (promise.isFulfilled()) {
@@ -68,24 +64,23 @@ function releaseConnectionToPool(release) {
   }
 }
 
-function withQueryRowsAsync(env, client) {
+function decorateWithQueryRowsAsync(env, client) {
   return Object.assign(client, {
-    queryRowsAsync: (query, args) => queryAsync(env, client, query, args).then(getRows)
+    queryRowsAsync: (query, args) => queryWithCtxAsync(env, client, query, args).then(getRows)
   })
 }
 
-function queryRowsAsync(env, query, args) {
-  var argsArray = args || []
-  return using(getConnection(env), function (connection) {
-    return queryAsync(env, connection, query, argsArray)
-  }).then(getRows)
+function executeQueryRowsAsync(env, connector, query, args) {
+  return using(getConnection(env, connector), function (connection) {
+    return connection.queryRowsAsync(query, args)
+  })
 }
 
 function getRows(res) {
   return res.rows
 }
 
-function queryAsync(env, client, query, args) {
+function queryWithCtxAsync(env, client, query, args) {
   if (_.isObject(query) && query[env.queryValuesKey] && Array.isArray(args) && args.length > 0) {
     throw new Error('Both query.values and args were passed to query. Please use only one of them.')
   }
@@ -184,9 +179,9 @@ module.exports = function (env) {
   poolConfig.connectionString = env.dbUrl
   poolConfig.max = env.poolSize
 
-  pool = new pg.Pool(poolConfig)
+  var pool = new pg.Pool(poolConfig)
 
-  connectMultiArgAsync = BPromise.promisify(pool.connect, { context: pool, multiArgs: true})
+  var connectMultiArgAsync = BPromise.promisify(pool.connect, { context: pool, multiArgs: true})
 
   var queryConfig = _.assign({}, QUERY_DEFAULTS, env)
 
@@ -201,14 +196,14 @@ module.exports = function (env) {
     end: end
   }
 
-  function getConnectionWithEnv() { return getConnection(queryConfig) }
+  function getConnectionWithEnv() { return getConnection(queryConfig, connectMultiArgAsync) }
 
-  function getTransactionWithEnv(tablesToLock) { return getTransaction(queryConfig, tablesToLock) }
+  function getTransactionWithEnv(tablesToLock) { return getTransaction(queryConfig, connectMultiArgAsync, tablesToLock) }
 
-  function queryRowsWithEnv(query, args) { return queryRowsAsync(queryConfig, query, args)}
+  function queryRowsWithEnv(query, args) { return executeQueryRowsAsync(queryConfig, connectMultiArgAsync, query, args)}
 
   function on(event, fn) {
-    pg.on(event, fn)
+    pool.on(event, fn)
   }
 
   function end() {
