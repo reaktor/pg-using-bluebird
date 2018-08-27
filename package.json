@@ -8,6 +8,8 @@
   },
   "scripts": {
     "lint": "eslint ./ --ext js",
+    "jenkins-lint": "eslint . -f checkstyle -o eslint3.xml",
+    "jenkins-test": "NODE_ENV=test BLUEBIRD_DEBUG=1 JUNIT_REPORT_PATH=test-report.xml mocha --reporter mocha-jenkins-reporter --exit 'test/**/*.js'",
     "test": "NODE_ENV=test BLUEBIRD_DEBUG=1 nyc --reporter text mocha --exit 'test/**/*.js'"
   },
   "repository": {
@@ -25,6 +27,7 @@
     "chai-as-promised": "^7.1.1",
     "eslint": "^5.4.0",
     "mocha": "^5.2.0",
+    "mocha-jenkins-reporter": "^0.4.0",
     "nyc": "^12.0.2"
   },
   "license": "MIT",
