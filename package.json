@@ -1,13 +1,16 @@
 {
   "name": "pg-using-bluebird",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "Helpers for managing PostgreSQL connections",
   "main": "index.js",
   "engines": {
     "node": ">=4.0.0"
   },
   "scripts": {
-    "test": "./node_modules/.bin/grunt"
+    "lint": "eslint ./ --ext js",
+    "jenkins-lint": "eslint . -f checkstyle -o eslint3.xml",
+    "jenkins-test": "NODE_ENV=test BLUEBIRD_DEBUG=1 JUNIT_REPORT_PATH=test-report.xml mocha --reporter mocha-jenkins-reporter --exit 'test/**/*.js'",
+    "test": "NODE_ENV=test BLUEBIRD_DEBUG=1 nyc --reporter text mocha --exit 'test/**/*.js'"
   },
   "repository": {
     "type": "git",
@@ -16,17 +19,16 @@
   "dependencies": {
     "bluebird": "^3.4.6",
     "lodash": "^4.17.2",
-    "pg": "^6.4.2",
+    "pg": "^7.4.3",
     "string-template": "^1.0.0"
   },
   "devDependencies": {
-    "chai": "^4.1.1",
+    "chai": "^4.1.2",
     "chai-as-promised": "^7.1.1",
-    "grunt": "^1.0.1",
-    "grunt-cli": "^1.2.0",
-    "grunt-eslint": "^20.0.0",
-    "grunt-mocha-test": "^0.13.2",
-    "mocha": "^4.1.0"
+    "eslint": "^5.4.0",
+    "mocha": "^5.2.0",
+    "mocha-jenkins-reporter": "^0.4.0",
+    "nyc": "^12.0.2"
   },
   "license": "MIT",
   "contributors": [

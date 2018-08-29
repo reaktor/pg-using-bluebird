@@ -1,6 +1,7 @@
 "use strict"; // eslint-disable-line semi
 
-var pgrm = require('../index.js')(),
+var configs = {dbUrl: "postgres://localhost/pgrm-tests"}
+var pgrm = require('../index.js')(configs),
   chai = require('chai'),
   _ = require('lodash')
 
