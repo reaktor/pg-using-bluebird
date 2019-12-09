@@ -1,6 +1,6 @@
 {
   "name": "pg-using-bluebird",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "description": "Helpers for managing PostgreSQL connections",
   "main": "index.js",
   "engines": {
@@ -17,26 +17,24 @@
     "url": "git://github.com/reaktor/pg-using-bluebird.git"
   },
   "dependencies": {
-    "bluebird": "^3.4.6",
-    "lodash": "^4.17.2",
-    "pg": "^7.4.3",
+    "bluebird": "^3.7.2",
+    "lodash": "^4.17.15",
+    "pg": "^7.14.0",
     "string-template": "^1.0.0"
   },
   "devDependencies": {
-    "chai": "^4.1.2",
+    "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
-    "eslint": "^5.4.0",
+    "eslint": "^5.16.0",
     "mocha": "^5.2.0",
-    "mocha-jenkins-reporter": "^0.4.0",
-    "nyc": "^12.0.2"
+    "mocha-jenkins-reporter": "^0.4.2",
+    "nyc": "^14.1.1"
   },
   "license": "MIT",
   "contributors": [
-    [
-      "Jouni Hartikainen (http://github.com/chacal)",
-      "Rami Karjalainen (http://github.com/ramik)",
-      "Oskar Ojala (http://github.com/pnex2000)",
-      "Heikki Rauhala (http://github.com/hvrauhal)"
-    ]
+    "Jouni Hartikainen (http://github.com/chacal)",
+    "Rami Karjalainen (http://github.com/ramik)",
+    "Oskar Ojala (http://github.com/pnex2000)",
+    "Heikki Rauhala (http://github.com/hvrauhal)"
   ]
 }
