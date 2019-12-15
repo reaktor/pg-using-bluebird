@@ -4,7 +4,7 @@
   "description": "Helpers for managing PostgreSQL connections",
   "main": "index.js",
   "engines": {
-    "node": ">=4.0.0"
+    "node": ">=6.9.1"
   },
   "scripts": {
     "lint": "eslint ./ --ext js",
@@ -19,8 +19,7 @@
   "dependencies": {
     "bluebird": "^3.7.2",
     "lodash": "^4.17.15",
-    "pg": "^7.14.0",
-    "string-template": "^1.0.0"
+    "pg": "^7.14.0"
   },
   "devDependencies": {
     "chai": "^4.2.0",
