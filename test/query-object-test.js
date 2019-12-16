@@ -12,7 +12,7 @@ const pgrmWithCustomKeys = pgrm(Object.assign(pgConfig,
 chai.use(chaiAsPromised)
 const assert = chai.assert
 
-describe('queryAsync with a query object', function () {
+describe('query-object-test.js', function () {
   beforeEach(() =>
     using(pgrmWithDefaults.getConnection(), conn =>
       conn.queryAsync("drop table if exists foo").then(() =>

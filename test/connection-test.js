@@ -28,15 +28,18 @@ describe('connection-test.js', function () {
     )
   })
 
-  describe('shortcut queryRowsAsync', function () {
-    it('returns the rows of the result', () =>
+  describe('single queries', function () {
+    it('queryRowsAsync returns the rows of the result', () =>
       pgrmWithDefaults.queryRowsAsync("insert into foo(bar) values ($1)", [1])
-        .then(assertOneEventuallyInFoo)
+        .then(() => pgrmWithDefaults.queryRowsAsync("select bar from foo"))
+        .then(rows => assert.deepEqual(rows, [{ bar: 1 }]))
     )
 
-    it('is has an alias queryAsync until the next breaking change release', () =>
+    it('queryAsync returns the result object', () =>
       pgrmWithDefaults.queryAsync("insert into foo(bar) values ($1)", [1])
-        .then(assertOneEventuallyInFoo)
+        .then(() => pgrmWithDefaults.queryAsync("select bar from foo"))
+        .tap(resultObj => assert.equal(resultObj.rowCount, 1))
+        .then(resultObj => assert.deepEqual(resultObj.rows, [{ bar: 1 }]))
     )
   })
 
@@ -133,9 +136,9 @@ describe('connection-test.js', function () {
               .then(() =>
                 assert.eventually.deepEqual(
                   BPromise.all([
-                    outerTx.queryAsync("select * from foo").then(res => res.rows),
-                    innerTx.queryAsync("select * from foo").then(res => res.rows),
-                    pgrmWithDefaults.queryAsync("select * from foo")]),
+                    outerTx.queryRowsAsync("select * from foo"),
+                    innerTx.queryRowsAsync("select * from foo"),
+                    pgrmWithDefaults.queryRowsAsync("select * from foo")]),
                   [
                     [{ bar: 1, id: 1 }],
                     [{ bar: 2, id: 2 }],

@@ -74,6 +74,12 @@ function executeQueryRowsAsync(env, connector, query, args) {
   )
 }
 
+function executeQuery(env, connector, query, args) {
+  return using(getConnection(env, connector), connection =>
+    connection.queryAsync(query, args)
+  )
+}
+
 function queryWithCtxAsync(env, client, query, args) {
   if (_.isObject(query) && query[env.queryValuesKey] && Array.isArray(args) && args.length > 0) {
     throw new Error('Both query.values and args were passed to query. Please use only one of them.')
@@ -146,12 +152,18 @@ function createMultipleInsertCTE(insert) {
   }
 }
 
-module.exports = function (env) {
+function createPoolConfig(env) {
   const poolConfig = Object.assign({}, POOL_DEFAULTS, env)
 
   // backwards compatibility
   poolConfig.connectionString = env.dbUrl
   poolConfig.max = env.poolSize
+
+  return poolConfig
+}
+
+module.exports = function (env) {
+  const poolConfig = createPoolConfig(env)
 
   const pool = new pg.Pool(poolConfig)
 
@@ -165,7 +177,7 @@ module.exports = function (env) {
     getTransaction: getTransactionWithEnv,
     withConnection: withConnection,
     withTransaction: withTransaction,
-    queryAsync: queryRowsWithEnv,
+    queryAsync: queryWithEnv,
     queryRowsAsync: queryRowsWithEnv,
     createMultipleInsertCTE,
     createUpsertCTE,
@@ -173,11 +185,16 @@ module.exports = function (env) {
     end
   }
 
-
-  function getConnectionWithEnv() { return getConnection(queryConfig, connectMultiArgAsync) }
+  function getConnectionWithEnv() {
+    return getConnection(queryConfig, connectMultiArgAsync)
+  }
 
   function getTransactionWithEnv(tablesToLock) {
     return getTransaction(queryConfig, connectMultiArgAsync, tablesToLock)
+  }
+
+  function queryWithEnv(query, args) {
+    return executeQuery(queryConfig, connectMultiArgAsync, query, args)
   }
 
   function queryRowsWithEnv(query, args) {
