@@ -6,8 +6,8 @@ const chai = require('chai')
 
 const assert = chai.assert
 
-describe('upsert-cte-test.js', function () {
-  describe('Create postgres multiple insert', function () {
+describe('create-multiple-insert-test.js', function () {
+  describe('Create Postgres multiple tuple insert', function () {
     it('Single parameter queries gets valid CTE', function () {
       const insert = {
         text: 'insert into grading_score(grading_score_score, grading_question_id, student_uuid) values ($1, $2, $3)',
