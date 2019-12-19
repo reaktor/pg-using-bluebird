@@ -7,66 +7,6 @@ const chai = require('chai')
 const assert = chai.assert
 
 describe('upsert-cte-test.js', function () {
-
-  describe('Create postgres CTE upsert', function () {
-    it('Single parameter queries gets valid CTE', function () {
-      const insert = {
-        text: 'insert into consultant (java_exp) select $1',
-        values: ['12']
-      }
-      const update = {
-        text: 'update consultant set java_exp = $1 where id = (select id from consultant where weight = 100)',
-        values: ['12']
-      }
-      const cte = pgrm.createUpsertCTE('foo', '*', { insert, update })
-      return assert.deepEqual(cte,
-        {
-          text: 'with foo_update AS (update consultant set java_exp = $1 where id = (select id from consultant where weight = 100) returning *), foo_insert as (insert into consultant (java_exp) select $2 where not exists (select * from foo_update) returning *)(select * from foo_update) union all (select * from foo_insert)',
-          values: ['12', '12']
-        })
-    })
-
-    it('Multiparameter queries gets valid CTE', function () {
-      const insert = {
-        text: 'insert into consultant (java_exp, name) select $1, $2',
-        values: [12, 'Bob']
-      }
-      const update = {
-        text: 'update consultant set java_exp = $1 where name = $2',
-        values: [12, 'Bob']
-      }
-      const cte = pgrm.createUpsertCTE('consut', 'consu_id', { insert, update })
-      return assert.deepEqual(cte,
-        {
-          text: 'with consut_update AS (update consultant set java_exp = $1 where name = $2 returning consu_id), consut_insert as (insert into consultant (java_exp, name) select $3, $4 where not exists (select * from consut_update) returning consu_id)(select * from consut_update) union all (select * from consut_insert)',
-          values: [12, 'Bob', 12, 'Bob']
-        })
-    })
-
-    it('Multiparameter queries with subselects gets valid CTE', function () {
-      const number = 1
-      const number2 = 2
-      const name = 'Bob'
-      const date = new Date(2014, 11, 17)
-      const date2 = new Date(2014, 11, 18)
-
-      const insert = {
-        text: 'insert into school_details_name(school_details_name_id, school_details_name_name, school_details_name_start_date, school_details_name_end_date, school_uuid) select $1, $2, $3, $4, (select school_uuid from school where school_number = $5)',
-        values: [number, name, date, date2, number2]
-      }
-      const update = {
-        text: 'update school_details_name set school_details_name_name = $1, school_details_name_start_date = $2, school_details_name_end_date = $3 where school_details_name_id = $4',
-        values: [name, date, date2, number2]
-      }
-      const cte = pgrm.createUpsertCTE('school_details_name', 'school_details_name_uuid', { insert, update })
-      return assert.deepEqual(cte,
-        {
-          text: 'with school_details_name_update AS (update school_details_name set school_details_name_name = $1, school_details_name_start_date = $2, school_details_name_end_date = $3 where school_details_name_id = $4 returning school_details_name_uuid), school_details_name_insert as (insert into school_details_name(school_details_name_id, school_details_name_name, school_details_name_start_date, school_details_name_end_date, school_uuid) select $5, $6, $7, $8, (select school_uuid from school where school_number = $9) where not exists (select * from school_details_name_update) returning school_details_name_uuid)(select * from school_details_name_update) union all (select * from school_details_name_insert)',
-          values: [name, date, date2, number2, number, name, date, date2, number2]
-        })
-    })
-  })
-
   describe('Create postgres multiple insert', function () {
     it('Single parameter queries gets valid CTE', function () {
       const insert = {

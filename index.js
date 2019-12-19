@@ -94,30 +94,6 @@ function constructLockingBeginStatement(involvedTables) {
   return ['BEGIN'].concat(statements).join(';')
 }
 
-function createUpsertCTE(table, idField, args) {
-  const insert = args.insert
-  const update = args.update
-
-  return {
-    text: 'with ' + formatQueryText(),
-    values: update.values.concat(insert.values)
-  }
-
-  function formatQueryText() {
-    const insertSql = rewriteInsertSql(insert.text, update.values.length)
-
-    return `${table}_update AS (${update.text} returning ${idField}), ${table}_insert as (${insertSql} where not exists (select * from ${table}_update) returning ${idField})(select * from ${table}_update) union all (select * from ${table}_insert)`
-
-    function rewriteInsertSql(text, count) {
-      let i = 0
-      return text
-        .split('$')
-        .map(fragment => fragment.replace(/\d+/, (count + i++)))
-        .join('$')
-    }
-  }
-}
-
 function createMultipleInsertCTE(insert) {
   const placeholders = insert.text.match(/\$\d+/g).map(param => parseInt(param.substring(1), 10))
   assert.ok(_.isEqual(placeholders, _.range(1, placeholders.length + 1)), "Refer to the insert statement parameters in ascending order!")
@@ -180,7 +156,6 @@ module.exports = function (env) {
     queryAsync: queryWithEnv,
     queryRowsAsync: queryRowsWithEnv,
     createMultipleInsertCTE,
-    createUpsertCTE,
     on,
     end
   }

@@ -43,7 +43,7 @@ Requiring this module returns a function takes a single parameter
 object with at least the URL to the DB (```{dbUrl: "myUrl"}```) and initializes a
 connection pool with 20 connections. Parameters are passed directly to node-postgres,
 refer to [node-postgres documentation](https://node-postgres.com/api/pool) for
-configuration options.
+configuration options. See tests for sample usage.
 
 The initializer returns an object with the following functions:
 
@@ -51,12 +51,11 @@ The initializer returns an object with the following functions:
 
 ```getTransaction([tablesToLock])``` returns a DB transaction, 1st argument is an optional list of tables to lock
 
+```queryAsync(query, [args])``` performs a query with the optional argument list inserted into the query. Returns the result object.
+
 ```queryRowsAsync(query, [args])``` performs a query with the optional argument list inserted into the query. Returns the resulting rows.
 
 ```createMultipleInsertCTE(insert)``` creates a common table expression (CTE) for multiple inserts, returns an object 
-with ```text``` for the query and ```values``` for the arguments.
-
-```createUpsertCTE(table, idField, args)``` creates an upsert query, returns an object 
 with ```text``` for the query and ```values``` for the arguments.
 
 ```on(event, fn)``` attach and event handler fn to the pool event event, see node-postgres documentation for event types
