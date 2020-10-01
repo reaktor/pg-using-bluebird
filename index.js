@@ -186,6 +186,7 @@ module.exports = function (env) {
   var queryConfig = _.assign({}, QUERY_DEFAULTS, env)
 
   return {
+    pool: pool,
     getConnection: getConnectionWithEnv,
     getTransaction: getTransactionWithEnv,
     queryAsync: queryRowsWithEnv,
