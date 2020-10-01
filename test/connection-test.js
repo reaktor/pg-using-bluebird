@@ -145,6 +145,30 @@ describe('connection-test.js', function () {
 
   })
 
+  describe('withConnection', function () {
+    it('wraps using() and getConnection()', function () {
+      return pgrmWithDefaults.withConnection(assertResponseObj)
+    })
+
+    it('does not rollback errors', function () {
+      return pgrmWithDefaults.withConnection(function (conn) {
+        return insert1IntoFoo(conn).then(throwAnError)
+      }).catch(assertOneEventuallyInFoo)
+    })
+  })
+
+  describe('withTransaction', function () {
+    it('wraps using() and getTransaction()', function () {
+      return pgrmWithDefaults.withTransaction(assertResponseObj)
+    })
+
+    it('rolls back the transaction if the function throws', function () {
+      return pgrmWithDefaults.withTransaction(function (tx) {
+        return insert1IntoFoo(tx).then(throwAnError)
+      }).catch(assertFooIsEventuallyEmpty)
+    })
+  })
+
   function insert1IntoFoo(connOrTx) {
     return connOrTx.queryAsync("insert into foo(bar) values (1)")
   }

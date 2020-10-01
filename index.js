@@ -188,6 +188,8 @@ module.exports = function (env) {
   return {
     getConnection: getConnectionWithEnv,
     getTransaction: getTransactionWithEnv,
+    withConnection: withConnection,
+    withTransaction: withTransaction,
     queryAsync: queryRowsWithEnv,
     queryRowsAsync: queryRowsWithEnv,
     createMultipleInsertCTE: createMultipleInsertCTE,
@@ -195,6 +197,7 @@ module.exports = function (env) {
     on: on,
     end: end
   }
+
 
   function getConnectionWithEnv() { return getConnection(queryConfig, connectMultiArgAsync) }
 
@@ -208,5 +211,13 @@ module.exports = function (env) {
 
   function end() {
     return pool.end()
+  }
+
+  function withConnection(statements) {
+    return using(getConnectionWithEnv(), statements)
+  }
+
+  function withTransaction(statements) {
+    return using(getTransactionWithEnv(), statements)
   }
 }
