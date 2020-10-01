@@ -17,6 +17,8 @@
     "url": "git://github.com/reaktor/pg-using-bluebird.git"
   },
   "dependencies": {
+    "@types/bluebird": "^3.5.32",
+    "@types/pg": "^7.14.5",
     "bluebird": "^3.7.2",
     "lodash": "^4.17.20",
     "pg": "^8.3.3"
