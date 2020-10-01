@@ -12,9 +12,7 @@ const POOL_DEFAULTS = {
 }
 
 const QUERY_DEFAULTS = {
-  statementTimeout: '0', // the node-postgres default is no timeout
-  queryValuesKey: 'values',
-  queryTextKey: 'text'
+  statementTimeout: '0' // the node-postgres default is no timeout
 }
 
 // Do not try to parse a postgres DATE to a javascript Date.
@@ -64,11 +62,11 @@ function releaseConnectionToPool(release) {
 
 function decorateWithQueryRowsAsync(env, client) {
   return Object.assign(client, {
-    queryRowsAsync: (query, args) => queryWithCtxAsync(env, client, query, args).then(res => res.rows)
+    queryRowsAsync: (query, args) => client.queryAsync(query, args).then(res => res.rows)
   })
 }
 
-function executeQueryRowsAsync(env, connector, query, args) {
+function executeQueryRows(env, connector, query, args) {
   return using(getConnection(env, connector), connection =>
     connection.queryRowsAsync(query, args)
   )
@@ -78,13 +76,6 @@ function executeQuery(env, connector, query, args) {
   return using(getConnection(env, connector), connection =>
     connection.queryAsync(query, args)
   )
-}
-
-function queryWithCtxAsync(env, client, query, args) {
-  if (_.isObject(query) && query[env.queryValuesKey] && Array.isArray(args) && args.length > 0) {
-    throw new Error('Both query.values and args were passed to query. Please use only one of them.')
-  }
-  return client.queryAsync(query[env.queryTextKey] || query, query[env.queryValuesKey] || args)
 }
 
 function constructLockingBeginStatement(involvedTables) {
@@ -173,7 +164,7 @@ module.exports = function (env) {
   }
 
   function queryRowsWithEnv(query, args) {
-    return executeQueryRowsAsync(queryConfig, connectMultiArgAsync, query, args)
+    return executeQueryRows(queryConfig, connectMultiArgAsync, query, args)
   }
 
   function withConnection(statements) {
