@@ -62,16 +62,6 @@ describe('connection-test.js', function () {
   })
 
   describe('timeouts', function () {
-    it('cause rollback', () =>
-      using(pgrmWithDefaults.getTransaction(),
-        tx =>
-          tx.queryAsync("SET statement_timeout TO '100ms'")
-            .then(() => insert1IntoFoo(tx))
-            .then(() => causeAndAssertATimeout(tx))
-            .then(assertFooIsEventuallyEmpty)
-      )
-    )
-
     describe('can be configured on pgrm level', function () {
       const pgrmWithShortTimeout = pgrm(Object.assign({}, pgConfig, {statementTimeout: '1ms'}))
 
@@ -90,6 +80,14 @@ describe('connection-test.js', function () {
           tx.queryAsync("SET statement_timeout TO '1ms'")
             .then(() => causeAndAssertATimeout(tx))
         )
+      )
+
+      it('cause rollback in transaction', () =>
+        using(pgrmWithDefaults.getTransaction(), tx =>
+          tx.queryAsync("SET statement_timeout TO '99ms'")
+            .then(() => insert1IntoFoo(tx))
+            .then(() => causeAndAssertATimeout(tx))
+        ).then(assertFooIsEventuallyEmpty)
       )
 
       it('for connections', () =>
