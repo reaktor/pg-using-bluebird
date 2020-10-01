@@ -117,15 +117,18 @@ describe('connection-test.js', function () {
       ).catch(assertFooIsEventuallyEmpty)
     )
 
-    it('are rollbacked in case of SQL exceptions', () =>
-      using(pgrmWithDefaults.getTransaction(), tx =>
-        insert1IntoFoo(tx)
-          .then(assertOneEventuallyInFoo)
-          .then(() =>
-            tx.queryAsync("this is not sql")
-          )
-      ).catch(assertFooIsEventuallyEmpty)
-    )
+    it('are rollbacked in case of SQL exceptions', () => {
+      assert.isRejected(
+        using(pgrmWithDefaults.getTransaction(), tx =>
+          insert1IntoFoo(tx)
+            .then(assertOneEventuallyInFoo)
+            .then(() =>
+              tx.queryAsync("this is not sql")
+            )
+        ),
+        Error)
+      return assertFooIsEventuallyEmpty()
+    })
 
     describe('support locking of tables', function () {
       it('and do not lock anything by default and be in read committed isolation level', () =>
