@@ -71,5 +71,5 @@ for query objects.
 
 # Alternatives
 
-* [pg-promise](https://www.npmjs.com/package/pg-promise), a more generic Promises/A+ promisification of node-postgres with more features and more code. Does not leverage `using()` for resource management.
+* [pg-promise](https://www.npmjs.com/package/pg-promise), a more generic Promises/A+ promisification of node-postgres with more features and more code.
 * [dbh-pg](https://www.npmjs.com/package/dbh-pg), a node-postgres and bluebird specific library with it's own api for querying.
