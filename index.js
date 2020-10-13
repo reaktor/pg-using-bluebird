@@ -175,7 +175,7 @@ module.exports = function (env) {
     return using(getTransactionWithEnv(), statements)
   }
 
-  function on(event, fn) { pool.on(event, fn) }
+  function on(event, fn) { return pool.on(event, fn) }
 
   function end() { return pool.end() }
 }
