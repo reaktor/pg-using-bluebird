@@ -1,20 +1,20 @@
 "use strict"; // eslint-disable-line semi
 
-var pgrm = require('../index.js')
-var configs = {dbUrl: "postgres://localhost/pgrm-tests"}
-var BPromise = require('bluebird')
-var using = BPromise.using
-var pgrmWithDefaults = pgrm(configs)
-var chai = require('chai')
-var chaiAsPromised = require('chai-as-promised')
+const pgrm = require('../index.js')
+const pgConfig = {dbUrl: "postgres://localhost/pgrm-tests"}
+const BPromise = require('bluebird')
+const using = BPromise.using
+const pgrmWithDefaults = pgrm(pgConfig)
+const chai = require('chai')
+const chaiAsPromised = require('chai-as-promised')
 
 chai.use(chaiAsPromised)
-var assert = chai.assert
+const assert = chai.assert
 
 describe('pool-event-test.js', function () {
   describe('on', () => {
     it('receives connect event', () => {
-      var receivedEvent = false
+      let receivedEvent = false
       pgrmWithDefaults.on('connect', () => { receivedEvent = true })
       return using(pgrmWithDefaults.getConnection(), () => assert.equal(receivedEvent, true))
     })

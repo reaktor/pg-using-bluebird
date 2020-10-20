@@ -1,58 +1,54 @@
 "use strict"; // eslint-disable-line semi
 
-var pg = require('pg'),
+const pg = require('pg'),
   _ = require('lodash'),
   BPromise = require('bluebird'),
-  stringTemplate = require('string-template'),
   using = BPromise.using,
   assert = require('assert')
 
-var POOL_DEFAULTS = {
+const POOL_DEFAULTS = {
   max: 20, // pool size
   ssl: false
 }
 
-var QUERY_DEFAULTS = {
-  statementTimeout: '0', // the node-postgres default is no timeout
-  queryValuesKey: 'values',
-  queryTextKey: 'text'
+const QUERY_DEFAULTS = {
+  statementTimeout: '0' // the node-postgres default is no timeout
 }
 
 // Do not try to parse a postgres DATE to a javascript Date.
-pg.types.setTypeParser(1082, 'text', _.identity)
+pg.types.setTypeParser(1082, 'text', x => x)
 
 BPromise.promisifyAll(pg)
 
 function getConnection(env, connector) {
-  var releaseConnection
+  let releaseConnection
 
   return connector()
     .spread(function (client, done) {
       releaseConnection = done
       return client.queryAsync("SET statement_timeout TO '" + env.statementTimeout + "'")
-        .then(function () { return decorateWithQueryRowsAsync(env, client) })
+        .then(() => decorateWithQueryRowsAsync(env, client))
     })
-    .disposer(function () {
+    .disposer(() =>
       releaseConnectionToPool(releaseConnection)
-    })
+    )
 }
 
-function getTransaction(env, connector, tablesToLock_) {
-  var tablesToLock = tablesToLock_ || []
-  var releaseConnection
+function getTransaction(env, connector, tablesToLock=[]) {
+  let releaseConnection
 
   return connector()
     .spread(function (client, done) {
       releaseConnection = done
       return client.queryAsync("SET statement_timeout TO '" + env.statementTimeout + "'")
-        .then(function () { return client.queryAsync(constructLockingBeginStatement(tablesToLock)) })
-        .then(function () { return decorateWithQueryRowsAsync(env, client) })
+        .then(() => client.queryAsync(constructLockingBeginStatement(tablesToLock)))
+        .then(() => decorateWithQueryRowsAsync(env, client))
     })
     .disposer(function (tx, promise) {
       if (promise.isFulfilled()) {
-        return tx.queryAsync('COMMIT').tap(function () { return releaseConnectionToPool(releaseConnection) })
+        return tx.queryAsync('COMMIT').tap(() => releaseConnectionToPool(releaseConnection))
       } else {
-        return tx.queryAsync('ROLLBACK').tap(function () { return releaseConnectionToPool(releaseConnection) })
+        return tx.queryAsync('ROLLBACK').tap(() => releaseConnectionToPool(releaseConnection))
       }
     })
 }
@@ -66,124 +62,81 @@ function releaseConnectionToPool(release) {
 
 function decorateWithQueryRowsAsync(env, client) {
   return Object.assign(client, {
-    queryRowsAsync: (query, args) => queryWithCtxAsync(env, client, query, args).then(getRows)
+    queryRowsAsync: (query, args) => client.queryAsync(query, args).then(res => res.rows)
   })
 }
 
-function executeQueryRowsAsync(env, connector, query, args) {
-  return using(getConnection(env, connector), function (connection) {
-    return connection.queryRowsAsync(query, args)
-  })
+function executeQueryRows(env, connector, query, args) {
+  return using(getConnection(env, connector), connection =>
+    connection.queryRowsAsync(query, args)
+  )
 }
 
-function getRows(res) {
-  return res.rows
-}
-
-function queryWithCtxAsync(env, client, query, args) {
-  if (_.isObject(query) && query[env.queryValuesKey] && Array.isArray(args) && args.length > 0) {
-    throw new Error('Both query.values and args were passed to query. Please use only one of them.')
-  }
-
-  return client.queryAsync(query[env.queryTextKey] || query, query[env.queryValuesKey] || args)
+function executeQuery(env, connector, query, args) {
+  return using(getConnection(env, connector), connection =>
+    connection.queryAsync(query, args)
+  )
 }
 
 function constructLockingBeginStatement(involvedTables) {
-  var lockSql = 'LOCK TABLE {table} IN SHARE ROW EXCLUSIVE MODE'
-  var statements = involvedTables.map(function(table) {
-    return stringTemplate(lockSql, { table: table })
-  })
-  statements.unshift('BEGIN')
-  return statements.join(';')
-}
-
-function createUpsertCTE(table, idField, args) {
-  var insert = args.insert
-  var update = args.update
-
-  return {
-    text: 'with ' + formatQueryText(),
-    values: getValues()
-  }
-
-  function getValues() { return update.values.concat(insert.values) }
-
-  function formatQueryText() {
-    var insertSql = rewriteInsertSql(insert.text, update.values.length)
-
-    return stringTemplate(upsertQuery(), {
-      table: table,
-      update: update.text,
-      uuid: idField,
-      insert: insertSql
-    })
-
-    function selectQuery() {
-      return '(select * from {table}_update) union all (select * from {table}_insert)'
-    }
-    function insertQuery() {
-      return '{insert} where not exists (select * from {table}_update) returning {uuid}'
-    }
-    function updateQuery() {
-      return '{update} returning {uuid}'
-    }
-    function upsertQuery() {
-      return '{table}_update AS (' +
-        updateQuery() +
-        '), {table}_insert as (' +
-        insertQuery() + ')' +
-        selectQuery()
-    }
-
-    function rewriteInsertSql(text, count) {
-      var i = 0
-      return text.split('$').map(function(fragment) {
-        return fragment.replace(/\d+/, (count + i++))
-      }).join('$')
-    }
-  }
+  const statements = involvedTables.map(table =>
+    `LOCK TABLE ${table} IN SHARE ROW EXCLUSIVE MODE`
+  )
+  return ['BEGIN'].concat(statements).join(';')
 }
 
 function createMultipleInsertCTE(insert) {
-  var placeholders = insert.text.match(/\$\d+/g).map(function(param) { return parseInt(param.substring(1), 10)})
+  const placeholders = insert.text.match(/\$\d+/g).map(param => parseInt(param.substring(1), 10))
   assert.ok(_.isEqual(placeholders, _.range(1, placeholders.length + 1)), "Refer to the insert statement parameters in ascending order!")
-  var numberOfParams = _.last(placeholders)
-  var sqlValuesText = _.last(insert.text.split('values'))
-  var valuesSegmentFragments = replaceParameters(numberOfParams, sqlValuesText, insert.values)
+  const numberOfParams = placeholders.length
+  const sqlValuesText = getStringAfterLast(insert.text, 'values')
+  const valuesTuples = replaceParameters(numberOfParams, sqlValuesText, insert.values)
 
   return {
-    text: insert.text.replace(sqlValuesText, valuesSegmentFragments.join(',')),
+    text: insert.text.replace(sqlValuesText, valuesTuples),
     values: insert.values
   }
 
-  function replaceParameters(parameterCountInSql, sqlString, values) {
-    var i = 1
+  function replaceParameters(parametersInSql, sqlString, values) {
+    assert.ok(values.length % parametersInSql === 0,
+      `Check that there are a multiple of parameter count values in the statement, ${values.length} vs ${parametersInSql}`)
+    const tupleCount = values.length / parametersInSql
+    const split = sqlString.split(/\$\d+/)
 
-    var valueSegmentCount = values.length / parameterCountInSql
-    assert.ok(valueSegmentCount % 1 === 0, "Check that there are a multiple of parameter count values in the statement" + values.length + parameterCountInSql )
-    return _.times(valueSegmentCount, function () {
-      var split = sqlString.split(/\$\d+/)
-      var omit = 0
-      return _.map(split, function (fragment) {
-        var isLastItemInFragment = ++omit % split.length === 0
-        return isLastItemInFragment ? fragment : fragment + '$' + i++
-      }).join('')
-    })
+    let valuesString = ''
+    for (let valueTuple = 0; valueTuple < tupleCount; valueTuple++) {
+      for (let tupleParamIdx = 0; tupleParamIdx < split.length - 1; tupleParamIdx++) {
+        valuesString += split[tupleParamIdx] + '$' + (valueTuple * (split.length - 1) + tupleParamIdx + 1)
+      }
+      valuesString += split[split.length - 1] + ','
+    }
+    return valuesString.slice(0, -1)
+  }
+
+  function getStringAfterLast(str, searchValue) {
+    const idx = str.toLowerCase().lastIndexOf(searchValue)
+    return str.substring(idx + searchValue.length)
   }
 }
 
-module.exports = function (env) {
-  var poolConfig = _.assign({}, POOL_DEFAULTS, env)
+function createPoolConfig(env) {
+  const poolConfig = Object.assign({}, POOL_DEFAULTS, env)
 
   // backwards compatibility
   poolConfig.connectionString = env.dbUrl
   poolConfig.max = env.poolSize
 
-  var pool = new pg.Pool(poolConfig)
+  return poolConfig
+}
 
-  var connectMultiArgAsync = BPromise.promisify(pool.connect, { context: pool, multiArgs: true})
+module.exports = function (env) {
+  const poolConfig = createPoolConfig(env)
 
-  var queryConfig = _.assign({}, QUERY_DEFAULTS, env)
+  const pool = new pg.Pool(poolConfig)
+
+  const connectMultiArgAsync = BPromise.promisify(pool.connect, { context: pool, multiArgs: true })
+
+  const queryConfig = Object.assign({}, QUERY_DEFAULTS, env)
 
   return {
     pool: pool,
@@ -191,27 +144,27 @@ module.exports = function (env) {
     getTransaction: getTransactionWithEnv,
     withConnection: withConnection,
     withTransaction: withTransaction,
-    queryAsync: queryRowsWithEnv,
+    queryAsync: queryWithEnv,
     queryRowsAsync: queryRowsWithEnv,
-    createMultipleInsertCTE: createMultipleInsertCTE,
-    createUpsertCTE: createUpsertCTE,
-    on: on,
-    end: end
+    createMultipleInsertCTE,
+    on,
+    end
   }
 
-
-  function getConnectionWithEnv() { return getConnection(queryConfig, connectMultiArgAsync) }
-
-  function getTransactionWithEnv(tablesToLock) { return getTransaction(queryConfig, connectMultiArgAsync, tablesToLock) }
-
-  function queryRowsWithEnv(query, args) { return executeQueryRowsAsync(queryConfig, connectMultiArgAsync, query, args)}
-
-  function on(event, fn) {
-    pool.on(event, fn)
+  function getConnectionWithEnv() {
+    return getConnection(queryConfig, connectMultiArgAsync)
   }
 
-  function end() {
-    return pool.end()
+  function getTransactionWithEnv(tablesToLock) {
+    return getTransaction(queryConfig, connectMultiArgAsync, tablesToLock)
+  }
+
+  function queryWithEnv(query, args) {
+    return executeQuery(queryConfig, connectMultiArgAsync, query, args)
+  }
+
+  function queryRowsWithEnv(query, args) {
+    return executeQueryRows(queryConfig, connectMultiArgAsync, query, args)
   }
 
   function withConnection(statements) {
@@ -221,4 +174,8 @@ module.exports = function (env) {
   function withTransaction(statements) {
     return using(getTransactionWithEnv(), statements)
   }
+
+  function on(event, fn) { return pool.on(event, fn) }
+
+  function end() { return pool.end() }
 }
