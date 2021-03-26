@@ -24,9 +24,9 @@ expectType<Disposer<Connection>>(pgrm.getConnection())
 expectType<Disposer<Connection>>(pgrm.getTransaction())
 expectType<Disposer<Connection>>(pgrm.getTransaction(['']))
 
-expectType<BPromise<User[]>>(pgrm.queryAsync<User>(''))
-expectType<BPromise<User[]>>(pgrm.queryAsync<User>('', []))
-expectType<BPromise<User[]>>(pgrm.queryAsync({ text: '', name: '', values: [] }))
+expectType<BPromise<QueryResult<User>>>(pgrm.queryAsync<User>(''))
+expectType<BPromise<QueryResult<User>>>(pgrm.queryAsync<User>('', []))
+expectType<BPromise<QueryResult<User>>>(pgrm.queryAsync({ text: '', name: '', values: [] }))
 
 expectType<BPromise<User[]>>(pgrm.queryRowsAsync<User>(''))
 expectType<BPromise<User[]>>(pgrm.queryRowsAsync<User>('', []))

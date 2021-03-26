@@ -16,8 +16,8 @@ export interface Pgrm {
 
   getTransaction(tablesToLock?: string[]): Disposer<Connection>
 
-  queryAsync<T>(sql: string, values?: any[]): BPromise<T[]>
-  queryAsync<T>(queryConfig: QueryConfig): BPromise<T[]>
+  queryAsync<T>(sql: string, values?: any[]): BPromise<QueryResult<T>>
+  queryAsync<T>(queryConfig: QueryConfig): BPromise<QueryResult<T>>
 
   queryRowsAsync<T>(sql: string, value?: any[]): BPromise<T[]>
   queryRowsAsync<T>(queryConfig: QueryConfig): BPromise<T[]>
